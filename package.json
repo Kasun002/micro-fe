@@ -7,7 +7,10 @@
     "start:shell": "npm start --prefix shell",
     "start:market": "npm start --prefix mf-market",
     "start:chart": "npm start --prefix mf-chart",
-    "start:portfolio": "npm start --prefix mf-portfolio"
+    "start:portfolio": "npm start --prefix mf-portfolio",
+    "build:remotes": "npm run build --prefix mf-market && npm run build --prefix mf-chart && npm run build --prefix mf-portfolio",
+    "build:shell": "npm run build --prefix shell",
+    "build:all": "npm run build:remotes && npm run build:shell && node scripts/merge-dist.js"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"

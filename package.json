@@ -1,0 +1,15 @@
+{
+  "name": "crypto-dashboard-mfe",
+  "private": true,
+  "scripts": {
+    "install:all": "npm i --prefix shell && npm i --prefix mf-market && npm i --prefix mf-chart && npm i --prefix mf-portfolio",
+    "start": "concurrently \"npm start --prefix mf-market\" \"npm start --prefix mf-chart\" \"npm start --prefix mf-portfolio\" \"npm start --prefix shell\"",
+    "start:shell": "npm start --prefix shell",
+    "start:market": "npm start --prefix mf-market",
+    "start:chart": "npm start --prefix mf-chart",
+    "start:portfolio": "npm start --prefix mf-portfolio"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

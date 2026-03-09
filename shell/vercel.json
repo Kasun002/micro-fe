@@ -1,0 +1,7 @@
+{
+  "buildCommand": "npx webpack --mode production",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

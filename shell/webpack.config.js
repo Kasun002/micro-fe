@@ -1,10 +1,17 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { ModuleFederationPlugin } = require('webpack').container;
 
-// Local dev defaults — override via environment variables for production
-const MF_MARKET_URL    = process.env.MF_MARKET_URL    || 'http://localhost:3001';
-const MF_CHART_URL     = process.env.MF_CHART_URL     || 'http://localhost:3002';
-const MF_PORTFOLIO_URL = process.env.MF_PORTFOLIO_URL || 'http://localhost:3003';
+// Vercel injects VERCEL_URL automatically on every build (no protocol prefix).
+// When present we're in a single-project monorepo deployment — all MFs live
+// under subpaths of the same domain, so no separate URLs are needed.
+// In local dev the env var is absent and we fall back to localhost ports.
+const VERCEL_BASE = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : null;
+
+const MF_MARKET_URL    = VERCEL_BASE ? `${VERCEL_BASE}/mf-market`    : (process.env.MF_MARKET_URL    || 'http://localhost:3001');
+const MF_CHART_URL     = VERCEL_BASE ? `${VERCEL_BASE}/mf-chart`     : (process.env.MF_CHART_URL     || 'http://localhost:3002');
+const MF_PORTFOLIO_URL = VERCEL_BASE ? `${VERCEL_BASE}/mf-portfolio` : (process.env.MF_PORTFOLIO_URL || 'http://localhost:3003');
 
 module.exports = {
   mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',

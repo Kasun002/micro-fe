@@ -304,15 +304,20 @@ Each remote is wrapped in an `ErrorBoundary + Suspense`. If a remote fails to lo
 
 ## Deploying to Vercel
 
-Each MF is deployed as a **separate Vercel project** from the same monorepo. You will have 4 Vercel projects total. Deploy remotes first, then the shell.
+All four apps live in **one repo → one Vercel project**. The build script compiles every MF and merges the outputs into a single `public/` folder that Vercel serves as static files.
 
-### Why 4 separate projects?
+```
+public/                           → shell  (served at /)
+public/mf-market/remoteEntry.js   → mf-market remote
+public/mf-chart/remoteEntry.js    → mf-chart remote
+public/mf-portfolio/remoteEntry.js → mf-portfolio remote
+```
 
-Module Federation requires each remote to be independently hosted at its own URL so the shell can fetch `remoteEntry.js` at runtime. Vercel's "Root Directory" setting makes this easy from one repo.
+No separate projects, no env vars to manage, no deployment ordering.
 
 ---
 
-### Step 1 — Push the repo to GitHub
+### Step 1 — Push to GitHub
 
 ```bash
 git init
@@ -324,101 +329,86 @@ git push -u origin main
 
 ---
 
-### Step 2 — Deploy the 3 remotes first
+### Step 2 — Create one Vercel project
 
-Create a new Vercel project for each remote. In the Vercel dashboard:
-
-**Import project → select your repo → configure as below:**
-
-| Setting | mf-market | mf-chart | mf-portfolio |
-|---|---|---|---|
-| Root Directory | `mf-market` | `mf-chart` | `mf-portfolio` |
-| Framework Preset | Other | Other | Other |
-| Build Command | `npx webpack --mode production` | same | same |
-| Output Directory | `dist` | `dist` | `dist` |
-| Environment Vars | — | — | — |
-
-The `vercel.json` in each folder handles the build and CORS headers automatically — no extra Vercel dashboard config needed.
-
-After deploying each remote, copy its production URL. It will look like:
-
-```
-https://mf-market-abc123.vercel.app
-https://mf-chart-abc123.vercel.app
-https://mf-portfolio-abc123.vercel.app
-```
-
----
-
-### Step 3 — Deploy the shell with env vars
-
-Create a new Vercel project for the shell:
+In the Vercel dashboard: **Add New Project → Import your repo**
 
 | Setting | Value |
 |---|---|
-| Root Directory | `shell` |
+| Root Directory | ` ` (leave blank — repo root) |
 | Framework Preset | Other |
-| Build Command | `npx webpack --mode production` |
-| Output Directory | `dist` |
+| Install Command | `npm run install:all` |
+| Build Command | `npm run build:all` |
+| Output Directory | `public` |
 
-Then add **Environment Variables** in the Vercel project settings:
+No environment variables needed. Click **Deploy**.
 
-| Variable | Value |
-|---|---|
-| `MF_MARKET_URL` | `https://mf-market-abc123.vercel.app` |
-| `MF_CHART_URL` | `https://mf-chart-abc123.vercel.app` |
-| `MF_PORTFOLIO_URL` | `https://mf-portfolio-abc123.vercel.app` |
-
-> These are picked up by `shell/webpack.config.js` at build time — the remote URLs are baked into the shell bundle.
-
-Trigger a redeploy after setting the env vars. The shell URL is your live app.
+The root `vercel.json` already configures all of this, so Vercel will pick it up automatically on import.
 
 ---
 
-### How the env var wiring works
+### How it works
 
-`shell/webpack.config.js` reads the URLs from env at build time:
-
-```js
-const MF_MARKET_URL    = process.env.MF_MARKET_URL    || 'http://localhost:3001';
-const MF_CHART_URL     = process.env.MF_CHART_URL     || 'http://localhost:3002';
-const MF_PORTFOLIO_URL = process.env.MF_PORTFOLIO_URL || 'http://localhost:3003';
+**`vercel.json` (root)**
+```json
+{
+  "installCommand": "npm run install:all",
+  "buildCommand":   "npm run build:all",
+  "outputDirectory": "public",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
 ```
 
-- In **local dev** — falls back to `localhost` automatically, no `.env` file needed.
-- In **Vercel prod** — Vercel injects the env vars before `npx webpack --mode production` runs.
+**`npm run build:all`** runs 3 steps:
+```
+1. npm run build:remotes  → builds mf-market, mf-chart, mf-portfolio → each outputs to <app>/dist/
+2. npm run build:shell    → builds shell → outputs to shell/dist/
+3. node scripts/merge-dist.js → copies everything into public/
+```
+
+**`shell/webpack.config.js`** auto-detects Vercel via the `VERCEL_URL` system env var (injected by Vercel on every build — no manual setup):
+```js
+const VERCEL_BASE = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : null;
+
+// On Vercel → same-domain subpaths
+// In local dev → localhost ports
+const MF_MARKET_URL = VERCEL_BASE
+  ? `${VERCEL_BASE}/mf-market`
+  : 'http://localhost:3001';
+```
+
+Vercel serves static files before applying rewrites, so `remoteEntry.js` files are served directly from their subpaths and the SPA rewrite only fires for unknown routes.
 
 ---
 
-### Adding a new MF to Vercel
+### Adding a new MF to this single-project setup
 
-1. Deploy the new MF as its own Vercel project (Root Directory = `mf-news`)
-2. Copy its production URL
-3. Add `MF_NEWS_URL=https://mf-news-xyz.vercel.app` to the **shell's** Vercel env vars
-4. Redeploy the shell — done
+1. Scaffold `mf-news/` (see "Plug In a New MF" section)
+2. Add its build to `package.json`:
+```json
+"build:remotes": "... && npm run build --prefix mf-news"
+```
+3. Add it to `scripts/merge-dist.js`:
+```js
+for (const mf of ['mf-market', 'mf-chart', 'mf-portfolio', 'mf-news']) {
+```
+4. Register it in `shell/webpack.config.js` remotes:
+```js
+const MF_NEWS_URL = VERCEL_BASE ? `${VERCEL_BASE}/mf-news` : 'http://localhost:3004';
+```
+5. Push — Vercel redeploys everything automatically.
 
 ---
 
 ### Vercel config files summary
 
-| File | What it does |
+| File | Purpose |
 |---|---|
-| `shell/vercel.json` | Sets build command + rewrites all routes to `index.html` (SPA routing) |
-| `mf-*/vercel.json` | Sets build command + adds `Access-Control-Allow-Origin: *` header so shell can load `remoteEntry.js` cross-origin |
-
----
-
-### Deployment order (must follow this)
-
-```
-1. Deploy mf-market  → get URL
-2. Deploy mf-chart   → get URL
-3. Deploy mf-portfolio → get URL
-4. Set env vars on shell Vercel project
-5. Deploy shell
-```
-
-If you update a remote later, just redeploy that one project — the shell does **not** need a redeploy unless the remote's URL changes.
+| `vercel.json` (root) | Single entry point — install, build, output dir, SPA rewrite |
+| `scripts/merge-dist.js` | Merges all `dist/` outputs into `public/` after build |
+| `mf-*/vercel.json` | Kept for standalone MF deployment reference — unused in monorepo mode |
 
 ---
 

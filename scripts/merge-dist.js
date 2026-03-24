@@ -32,7 +32,12 @@ copyDir(path.join(ROOT, 'shell/dist'), PUB);
 
 // Remotes → public/<name>/
 for (const mf of ['mf-market', 'mf-chart', 'mf-portfolio', 'mf-angular']) {
-  copyDir(path.join(ROOT, mf, 'dist'), path.join(PUB, mf));
+  const distDir = path.join(ROOT, mf, 'dist');
+  const remoteEntry = path.join(distDir, 'remoteEntry.js');
+  if (!fs.existsSync(remoteEntry)) {
+    throw new Error(`Build artifact missing: ${remoteEntry}\nDid "npm run build --prefix ${mf}" run successfully?`);
+  }
+  copyDir(distDir, path.join(PUB, mf));
 }
 
 console.log('✓ Merged dist outputs into /public');

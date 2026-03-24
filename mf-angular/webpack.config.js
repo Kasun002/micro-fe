@@ -6,7 +6,6 @@ module.exports = {
   entry: './src/index.ts',
   output: {
     publicPath: 'auto',
-    // Prevents global __webpack_require__ collisions with the React remotes
     uniqueName: 'mfAngular',
   },
   resolve: { extensions: ['.ts', '.js'] },
@@ -17,8 +16,10 @@ module.exports = {
         loader: 'ts-loader',
         exclude: /node_modules/,
         options: {
-          // transpileOnly MUST be false so emitDecoratorMetadata is honoured
-          transpileOnly: false,
+          // We use inject() so emitDecoratorMetadata is not required.
+          // transpileOnly:true skips full type-checking, which avoids ts-loader
+          // issues inside webpack's child compilation for the remote entry.
+          transpileOnly: true,
         },
       },
     ],
@@ -30,24 +31,14 @@ module.exports = {
       exposes: {
         './MarketStats': './src/market-stats.element.ts',
       },
-      shared: {
-        // Angular packages must NOT be declared as singletons shared with the
-        // React shell — the shell has no Angular in its shared scope, so
-        // marking them singleton:false bundles them inside the remote's own
-        // chunk instead of fighting the shell's shared scope negotiation.
-        '@angular/core':                     { singleton: false, eager: false },
-        '@angular/common':                   { singleton: false, eager: false },
-        '@angular/elements':                 { singleton: false, eager: false },
-        '@angular/platform-browser':         { singleton: false, eager: false },
-        '@angular/platform-browser-dynamic': { singleton: false, eager: false },
-        '@angular/compiler':                 { singleton: false, eager: false },
-        'rxjs':                              { singleton: false, eager: false },
-        'zone.js':                           { singleton: false, eager: false },
-        'tslib':                             { singleton: false, eager: false },
-      },
+      // No shared section — the React shell offers no Angular packages so sharing
+      // is a no-op, but the shared-module analysis pass in webpack's child
+      // compilation was the source of the build error. Omitting it lets Angular
+      // packages bundle directly into the remote chunk without any negotiation.
     }),
     new HtmlWebpackPlugin({ template: './public/index.html' }),
   ],
+  stats: { children: true },
   devServer: {
     port: 3004,
     historyApiFallback: true,

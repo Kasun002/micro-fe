@@ -42,7 +42,7 @@ module.exports = {
         './MarketStats': './src/market-stats.element.ts',
       },
     }),
-    new HtmlWebpackPlugin({ template: './public/index.html' }),
+    new HtmlWebpackPlugin({ template: './src/index.html' }),
   ],
   stats: { children: true },
   devServer: {

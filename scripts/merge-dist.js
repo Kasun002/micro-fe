@@ -6,6 +6,7 @@
  *   public/mf-market/        ← mf-market remote
  *   public/mf-chart/         ← mf-chart remote
  *   public/mf-portfolio/     ← mf-portfolio remote
+ *   public/mf-angular/       ← mf-angular remote (Angular 17)
  */
 
 const fs   = require('fs');
@@ -30,7 +31,7 @@ fs.rmSync(PUB, { recursive: true, force: true });
 copyDir(path.join(ROOT, 'shell/dist'), PUB);
 
 // Remotes → public/<name>/
-for (const mf of ['mf-market', 'mf-chart', 'mf-portfolio']) {
+for (const mf of ['mf-market', 'mf-chart', 'mf-portfolio', 'mf-angular']) {
   copyDir(path.join(ROOT, mf, 'dist'), path.join(PUB, mf));
 }
 

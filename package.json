@@ -2,13 +2,14 @@
   "name": "crypto-dashboard-mfe",
   "private": true,
   "scripts": {
-    "install:all": "npm i --prefix shell && npm i --prefix mf-market && npm i --prefix mf-chart && npm i --prefix mf-portfolio",
-    "start": "concurrently \"npm start --prefix mf-market\" \"npm start --prefix mf-chart\" \"npm start --prefix mf-portfolio\" \"npm start --prefix shell\"",
+    "install:all": "npm i --prefix shell && npm i --prefix mf-market && npm i --prefix mf-chart && npm i --prefix mf-portfolio && npm i --prefix mf-angular",
+    "start": "concurrently \"npm start --prefix mf-market\" \"npm start --prefix mf-chart\" \"npm start --prefix mf-portfolio\" \"npm start --prefix mf-angular\" \"npm start --prefix shell\"",
     "start:shell": "npm start --prefix shell",
     "start:market": "npm start --prefix mf-market",
     "start:chart": "npm start --prefix mf-chart",
     "start:portfolio": "npm start --prefix mf-portfolio",
-    "build:remotes": "npm run build --prefix mf-market && npm run build --prefix mf-chart && npm run build --prefix mf-portfolio",
+    "start:angular": "npm start --prefix mf-angular",
+    "build:remotes": "npm run build --prefix mf-market && npm run build --prefix mf-chart && npm run build --prefix mf-portfolio && npm run build --prefix mf-angular",
     "build:shell": "npm run build --prefix shell",
     "build:all": "npm run build:remotes && npm run build:shell && node scripts/merge-dist.js"
   },

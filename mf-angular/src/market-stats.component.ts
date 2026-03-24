@@ -4,6 +4,7 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  inject,
 } from '@angular/core';
 import { NgIf, DecimalPipe } from '@angular/common';
 
@@ -140,12 +141,13 @@ export class MarketStatsComponent implements OnInit, OnDestroy {
 
   abs = Math.abs;
 
+  // inject() — Angular 17 functional DI, no constructor needed, no reflect-metadata required
+  private readonly cdr = inject(ChangeDetectorRef);
+
   private readonly coinHandler = (e: Event): void => {
     this.selectedCoin = (e as CustomEvent<SelectedCoin>).detail;
     this.cdr.markForCheck();
   };
-
-  constructor(private readonly cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     window.addEventListener('COIN_SELECTED', this.coinHandler);

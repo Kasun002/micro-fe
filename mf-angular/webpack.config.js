@@ -30,6 +30,11 @@ module.exports = {
           },
         },
       },
+      {
+        test: /\.html$/,
+        exclude: /node_modules/,
+        use: 'raw-loader',
+      },
     ],
   },
   optimization: {

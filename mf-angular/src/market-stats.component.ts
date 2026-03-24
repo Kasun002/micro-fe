@@ -7,27 +7,7 @@ import {
   inject,
 } from '@angular/core';
 import { NgIf, DecimalPipe } from '@angular/common';
-
-interface FngData {
-  value: string;
-  value_classification: string;
-}
-
-interface GlobalData {
-  total_market_cap: { usd: number };
-  total_volume: { usd: number };
-  market_cap_percentage: { btc: number; eth: number };
-  active_cryptocurrencies: number;
-  market_cap_change_percentage_24h_usd: number;
-}
-
-interface SelectedCoin {
-  coinId: string;
-  name: string;
-  symbol: string;
-  price: number;
-  image: string;
-}
+import { FngData, GlobalData, SelectedCoin } from './market-stats.interfaces';
 
 // Tailwind CDN is loaded in the shell's index.html (and in this app's index.html
 // for standalone dev). Angular's default ViewEncapsulation.Emulated does NOT use
@@ -37,101 +17,7 @@ interface SelectedCoin {
   standalone: true,
   imports: [NgIf, DecimalPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <!-- Outer bar -->
-    <div class="flex flex-wrap items-center gap-5 px-5 py-2.5 min-h-12 bg-gray-950">
-
-      <!-- Loading -->
-      <span *ngIf="loading" class="text-xs text-gray-600 animate-pulse">
-        Loading market data…
-      </span>
-
-      <ng-container *ngIf="!loading">
-
-        <!-- Framework badge -->
-        <div class="flex flex-col gap-0.5">
-          <span class="text-[9px] uppercase tracking-widest text-gray-500">Framework</span>
-          <span class="text-[11px] font-bold px-2 py-0.5 rounded"
-                style="background:#880e4f; color:#fce4ec;">
-            Angular v17
-          </span>
-        </div>
-
-        <div class="w-px h-7 bg-gray-800 shrink-0"></div>
-
-        <!-- Fear & Greed Index -->
-        <div *ngIf="fng" class="flex flex-col gap-0.5">
-          <span class="text-[9px] uppercase tracking-widest text-gray-500">Sentiment</span>
-          <span class="text-[11px] font-bold px-2 py-0.5 rounded"
-                [style.background]="fngBg"
-                [style.color]="fngText">
-            {{ fng.value_classification }} · {{ fng.value }}
-          </span>
-        </div>
-
-        <!-- Global Market Cap -->
-        <div *ngIf="global" class="flex flex-col gap-0.5">
-          <span class="text-[9px] uppercase tracking-widest text-gray-500">Market Cap</span>
-          <span class="text-xs text-gray-200 font-mono flex items-center gap-1">
-            {{ formatLarge(global.total_market_cap.usd) }}
-            <span [class]="global.market_cap_change_percentage_24h_usd >= 0
-                            ? 'text-[11px] text-emerald-400'
-                            : 'text-[11px] text-red-400'">
-              {{ global.market_cap_change_percentage_24h_usd >= 0 ? '▲' : '▼' }}{{ abs(global.market_cap_change_percentage_24h_usd) | number:'1.2-2' }}%
-            </span>
-          </span>
-        </div>
-
-        <!-- 24h Volume -->
-        <div *ngIf="global" class="flex flex-col gap-0.5">
-          <span class="text-[9px] uppercase tracking-widest text-gray-500">24h Volume</span>
-          <span class="text-xs text-gray-200 font-mono">
-            {{ formatLarge(global.total_volume.usd) }}
-          </span>
-        </div>
-
-        <!-- BTC Dominance -->
-        <div *ngIf="global" class="flex flex-col gap-0.5">
-          <span class="text-[9px] uppercase tracking-widest text-gray-500">BTC Dom</span>
-          <span class="text-xs text-gray-200 font-mono">
-            {{ global.market_cap_percentage.btc | number:'1.1-1' }}%
-          </span>
-        </div>
-
-        <!-- ETH Dominance -->
-        <div *ngIf="global" class="flex flex-col gap-0.5">
-          <span class="text-[9px] uppercase tracking-widest text-gray-500">ETH Dom</span>
-          <span class="text-xs text-gray-200 font-mono">
-            {{ global.market_cap_percentage.eth | number:'1.1-1' }}%
-          </span>
-        </div>
-
-        <!-- Active Cryptocurrencies -->
-        <div *ngIf="global" class="flex flex-col gap-0.5">
-          <span class="text-[9px] uppercase tracking-widest text-gray-500">Active Coins</span>
-          <span class="text-xs text-gray-200 font-mono">
-            {{ global.active_cryptocurrencies | number }}
-          </span>
-        </div>
-
-        <!-- Selected coin chip — updated by React's COIN_SELECTED CustomEvent -->
-        <ng-container *ngIf="selectedCoin">
-          <div class="w-px h-7 bg-gray-800 shrink-0"></div>
-          <div class="flex items-center gap-2 bg-blue-950 border border-blue-800 rounded-md px-2.5 py-1">
-            <img [src]="selectedCoin.image" [alt]="selectedCoin.name"
-                 class="w-5 h-5 rounded-full shrink-0" />
-            <div class="flex flex-col gap-0">
-              <span class="text-[11px] text-blue-300 font-semibold">{{ selectedCoin.name }}</span>
-              <span class="text-[11px] text-gray-200 font-mono">
-                \${{ selectedCoin.price | number:'1.2-6' }}
-              </span>
-            </div>
-          </div>
-        </ng-container>
-
-      </ng-container>
-    </div>
-  `,
+  templateUrl: './market-stats.component.html',
 })
 export class MarketStatsComponent implements OnInit, OnDestroy {
   loading = true;

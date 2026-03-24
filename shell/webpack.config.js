@@ -14,6 +14,7 @@ const VERCEL_BASE = process.env.VERCEL_PROJECT_PRODUCTION_URL
 const MF_MARKET_URL    = VERCEL_BASE ? `${VERCEL_BASE}/mf-market`    : (process.env.MF_MARKET_URL    || 'http://localhost:3001');
 const MF_CHART_URL     = VERCEL_BASE ? `${VERCEL_BASE}/mf-chart`     : (process.env.MF_CHART_URL     || 'http://localhost:3002');
 const MF_PORTFOLIO_URL = VERCEL_BASE ? `${VERCEL_BASE}/mf-portfolio` : (process.env.MF_PORTFOLIO_URL || 'http://localhost:3003');
+const MF_ANGULAR_URL   = VERCEL_BASE ? `${VERCEL_BASE}/mf-angular`   : (process.env.MF_ANGULAR_URL   || 'http://localhost:3004');
 
 module.exports = {
   mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
@@ -35,6 +36,7 @@ module.exports = {
         mfMarket:    `mfMarket@${MF_MARKET_URL}/remoteEntry.js`,
         mfChart:     `mfChart@${MF_CHART_URL}/remoteEntry.js`,
         mfPortfolio: `mfPortfolio@${MF_PORTFOLIO_URL}/remoteEntry.js`,
+        mfAngular:   `mfAngular@${MF_ANGULAR_URL}/remoteEntry.js`,
       },
       shared: {
         react:       { singleton: true, requiredVersion: '^19.0.0' },

@@ -1,8 +1,26 @@
-import React, { Suspense, lazy, Component } from 'react';
+import React, { Suspense, lazy, Component, useEffect, useRef } from 'react';
 
 const MarketList = lazy(() => import('mfMarket/MarketList'));
 const CoinChart   = lazy(() => import('mfChart/CoinChart'));
 const Portfolio   = lazy(() => import('mfPortfolio/Portfolio'));
+
+// Angular bridge ─ React.lazy bootstraps the Angular Element then returns a
+// thin React component that renders <crypto-market-stats> (a native web component).
+// The mountMarketStats() call is idempotent, so it is safe in React 19 Strict Mode.
+const AngularMarketStats = lazy(() =>
+  import('mfAngular/MarketStats').then(mod => ({
+    default: function MarketStatsWrapper() {
+      const mounted = useRef(false);
+      useEffect(() => {
+        if (mounted.current) return;
+        mounted.current = true;
+        mod.mountMarketStats(); // registers <crypto-market-stats> custom element once
+      }, []);
+      // React 19 natively supports custom elements in JSX
+      return React.createElement('crypto-market-stats', { style: { display: 'block', width: '100%' } });
+    },
+  }))
+);
 
 class ErrorBoundary extends Component {
   state = { error: null };
@@ -38,6 +56,7 @@ export default function App() {
           <span className="border border-gray-700 px-2 py-1 rounded">mf-market :3001</span>
           <span className="border border-gray-700 px-2 py-1 rounded">mf-chart :3002</span>
           <span className="border border-gray-700 px-2 py-1 rounded">mf-portfolio :3003</span>
+          <span className="border border-pink-900 text-pink-700 px-2 py-1 rounded">mf-angular :3004</span>
         </div>
       </header>
 
@@ -79,6 +98,25 @@ export default function App() {
             </Slot>
           </div>
         </div>
+      </div>
+
+      {/* Market Stats — Angular 17 micro frontend, full-width bottom strip */}
+      <div className="flex-shrink-0 border-t border-gray-800">
+        <div className="px-4 py-2 border-b border-gray-800 bg-gray-900 flex items-center gap-2">
+          <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Market Stats</span>
+          <span style={{
+            fontSize: '10px',
+            background: '#880e4f',
+            color: '#fce4ec',
+            padding: '1px 7px',
+            borderRadius: '4px',
+            fontWeight: 700,
+            letterSpacing: '0.05em',
+          }}>Angular</span>
+        </div>
+        <Slot name="mf-angular">
+          <AngularMarketStats />
+        </Slot>
       </div>
     </div>
   );

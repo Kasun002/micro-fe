@@ -4,7 +4,7 @@
   "outputDirectory": "public",
   "rewrites": [
     {
-      "source": "/((?!mf-market|mf-chart|mf-portfolio).*)",
+      "source": "/((?!mf-market|mf-chart|mf-portfolio|mf-angular).*)",
       "destination": "/index.html"
     }
   ]

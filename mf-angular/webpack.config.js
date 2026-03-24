@@ -13,13 +13,23 @@ module.exports = {
     rules: [
       {
         test: /\.ts$/,
-        loader: 'ts-loader',
         exclude: /node_modules/,
-        options: {
-          // We use inject() so emitDecoratorMetadata is not required.
-          // transpileOnly:true skips full type-checking, which avoids ts-loader
-          // issues inside webpack's child compilation for the remote entry.
-          transpileOnly: true,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            // Decorators MUST be listed before preset-typescript so Babel
+            // transforms them before stripping TypeScript syntax.
+            plugins: [
+              ['@babel/plugin-proposal-decorators', { legacy: true }],
+            ],
+            presets: [
+              ['@babel/preset-env', { targets: 'last 2 Chrome versions' }],
+              ['@babel/preset-typescript'],
+            ],
+            // Angular decorators rely on assignment-style class fields
+            // (equivalent to TypeScript's useDefineForClassFields:false).
+            assumptions: { setPublicClassFields: true },
+          },
         },
       },
     ],
@@ -31,10 +41,6 @@ module.exports = {
       exposes: {
         './MarketStats': './src/market-stats.element.ts',
       },
-      // No shared section — the React shell offers no Angular packages so sharing
-      // is a no-op, but the shared-module analysis pass in webpack's child
-      // compilation was the source of the build error. Omitting it lets Angular
-      // packages bundle directly into the remote chunk without any negotiation.
     }),
     new HtmlWebpackPlugin({ template: './public/index.html' }),
   ],

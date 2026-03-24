@@ -1,11 +1,13 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { ModuleFederationPlugin } = require('webpack').container;
 
-// Vercel injects VERCEL_URL automatically on every build (no protocol prefix).
-// When present we're in a single-project monorepo deployment — all MFs live
-// under subpaths of the same domain, so no separate URLs are needed.
-// In local dev the env var is absent and we fall back to localhost ports.
-const VERCEL_BASE = process.env.VERCEL_URL
+// VERCEL_URL is deployment-specific and unreliable for baking remote URLs.
+// VERCEL_PROJECT_PRODUCTION_URL is the stable production domain (no protocol).
+// All MFs are deployed as subpaths of the same domain, so we just need the origin.
+// In local dev both vars are absent and we fall back to localhost ports.
+const VERCEL_BASE = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : null;
 

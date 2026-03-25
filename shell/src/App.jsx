@@ -63,7 +63,7 @@ export default function App() {
       {/* Main Grid */}
       <div className="flex flex-1 overflow-hidden">
         {/* Market List — left column */}
-        <div className="w-96 border-r border-gray-800 flex flex-col flex-shrink-0 overflow-hidden">
+        <div className="w-96 border-r h-[80vh] border-gray-800 flex flex-col flex-shrink-0 overflow-hidden">
           <div className="px-4 py-2 border-b border-gray-800 bg-gray-900">
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Markets</span>
           </div>

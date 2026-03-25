@@ -7,6 +7,7 @@ import '@angular/compiler'; // JIT — must be present when loaded as a remote
 
 import { createApplication } from '@angular/platform-browser';
 import { createCustomElement } from '@angular/elements';
+import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { MarketStatsComponent } from './market-stats.component';
 
 /**
@@ -15,6 +16,8 @@ import { MarketStatsComponent } from './market-stats.component';
  */
 export async function mountMarketStats(): Promise<void> {
   if (customElements.get('crypto-market-stats')) return;
+
+  await resolveComponentResources(url => fetch(url).then(r => r.text()));
 
   const appRef = await createApplication({ providers: [] });
   const MarketStatsElement = createCustomElement(MarketStatsComponent, {
